@@ -14,8 +14,14 @@ pytest_session.txt
 .coverage
 
 # editors
-.idea
-.vscode
+**/.idea
+**/.vscode
+
+# CMake build directory
+**/build
+
+# macOS dynamically linked libraries
+**/*.dylib
 
 # ts_pre_commit_conf
 .pre-commit-config.yaml
