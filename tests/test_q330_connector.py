@@ -19,18 +19,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import typing
+import logging
+import types
+import unittest
+from unittest import mock
 
-# For an explanation why these next lines are so complicated, see
-# https://confluence.lsstcorp.org/pages/viewpage.action?spaceKey=LTS&title=Enabling+Mypy+in+Pytest
-if typing.TYPE_CHECKING:
-    __version__ = "?"
-else:
-    try:
-        from .version import *
-    except ImportError:
-        __version__ = "?"
+from lsst.ts.ess import earthquake
 
-from .earthquake_data_client import *
-from .q330_connector import *
-from .q330_utils import *
+
+class Q330ConnectorTestCase(unittest.IsolatedAsyncioTestCase):
+    @mock.patch("lsst.ts.ess.earthquake.q330_connector.ctypes.CDLL", mock.MagicMock())
+    async def test_q330_connector(self) -> None:
+        config = types.SimpleNamespace(
+            host="127.0.0.1", port=6330, serial_id="0123456789ABCDEF"
+        )
+        topics = types.SimpleNamespace()
+        log = logging.getLogger(type(self).__name__)
+        q330_connector = earthquake.Q330Connector(config=config, topics=topics, log=log)
+        assert q330_connector is not None
+
+        q330_connector.q330_state = earthquake.TState()
+        q330_connector.q330_state.info = earthquake.TLibState.LIBSTATE_RUNWAIT.value
+
+        await q330_connector.connect()
+        await q330_connector.disconnect()
