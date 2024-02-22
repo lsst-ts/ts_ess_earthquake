@@ -19,6 +19,11 @@ This package contains code to read earthquake sensor data and the documentation 
 
 .. _lsst.ts.ess.earthquake-developer_guide:
 
+C API reference
+---------------
+
+See the :download:`Lib330 InterfaceSpec v11 <Lib330-InterfaceSpec-v11.pdf>`.
+
 Python API reference
 --------------------
 
