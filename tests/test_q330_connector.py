@@ -19,18 +19,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Sphinx configuration file for an LSST stack package.
+import logging
+import types
+import unittest
+from unittest import mock
 
-This configuration only affects single-package Sphinx documentation builds.
-"""
+from lsst.ts.ess import earthquake
 
-import lsst.ts.ess.earthquake  # noqa
-from documenteer.conf.pipelinespkg import *  # type: ignore # noqa
 
-project = "ts_ess_earthquake"
-html_theme_options["logotext"] = project  # type: ignore # noqa
-html_title = project
-html_short_title = project
+class Q330ConnectorTestCase(unittest.IsolatedAsyncioTestCase):
+    @mock.patch("lsst.ts.ess.earthquake.q330_connector.ctypes.CDLL", mock.MagicMock())
+    async def test_q330_connector(self) -> None:
+        config = types.SimpleNamespace(
+            host="127.0.0.1", port=6330, serial_id="0123456789ABCDEF"
+        )
+        topics = types.SimpleNamespace()
+        log = logging.getLogger(type(self).__name__)
+        q330_connector = earthquake.Q330Connector(config=config, topics=topics, log=log)
+        assert q330_connector is not None
 
-intersphinx_mapping["ts_salobj"] = ("https://ts-salobj.lsst.io", None)  # type: ignore # noqa
-intersphinx_mapping["ts_ess_common"] = ("https://ts-ess-common.lsst.io", None)  # type: ignore # noqa
+        q330_connector.q330_state = earthquake.TState()
+        q330_connector.q330_state.info = earthquake.TLibState.LIBSTATE_RUNWAIT.value
+
+        await q330_connector.connect()
+        await q330_connector.disconnect()

@@ -1,6 +1,6 @@
 # This file is part of ts_ess_earthquake.
 #
-# Developed for the Vera C. Rubin Observatory Telescope and Site Systems.
+# Developed for the Vera Rubin Observatory Telescope and Site Systems.
 # This product includes software developed by the LSST Project
 # (https://www.lsst.org).
 # See the COPYRIGHT file at the top-level directory of this distribution
@@ -19,18 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Sphinx configuration file for an LSST stack package.
+import setuptools_scm
+from setuptools import setup
 
-This configuration only affects single-package Sphinx documentation builds.
-"""
-
-import lsst.ts.ess.earthquake  # noqa
-from documenteer.conf.pipelinespkg import *  # type: ignore # noqa
-
-project = "ts_ess_earthquake"
-html_theme_options["logotext"] = project  # type: ignore # noqa
-html_title = project
-html_short_title = project
-
-intersphinx_mapping["ts_salobj"] = ("https://ts-salobj.lsst.io", None)  # type: ignore # noqa
-intersphinx_mapping["ts_ess_common"] = ("https://ts-ess-common.lsst.io", None)  # type: ignore # noqa
+setup(
+    version=setuptools_scm.get_version(),
+)
