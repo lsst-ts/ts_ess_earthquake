@@ -3,13 +3,17 @@ Simplified API for lib330
 #########################
 
 This directory contains the C source and header files for a simplified API for lib330.
+The lib330 source files are publicly available in the src/libsrc/lib330 directory of https://gitlab.com/seismic-software/earthworm
 Here and everywhere else this simplified API will be referred to as libq330.
 
 ##################
 Command line build
 ##################
 
-In order to be able to build libq330, both cmake and make need to be installed.
+In order to be able to build libq330, cmake needs to be installed.
+The CMake structure is setup such that it first pulls and compiles the earthworm source code.
+Then libq330 is built.
+
 The steps to build the dynamically linked library on the command line are then
 
 .. code-block:: bash
@@ -18,10 +22,10 @@ The steps to build the dynamically linked library on the command line are then
     mkdir build
     cd build
     cmake ..
-    make
-    make install
+    cmake --build .
+    cmake --install .
 
-This will install the dynamically linked library in <ts_ess_earthquake clone path>/python/lsst/ts/ess/earthquake/data/libq330
+This will install the dynamically linked library into the <ts_ess_earthquake clone path>/python/lsst/ts/ess/earthquake/data/libq330 directory.
 On Linux this will create the file libq330.so.
 On macOS this will create the file libq330.dylib.
 
