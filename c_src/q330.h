@@ -27,6 +27,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+/**
+ * Structure with Q330 initialization data, which can be passed from Python.
+ */
 typedef struct { /* parameters to initialize Q330 */
     uint64_t serial_id;
     string250 hostname;
@@ -39,6 +42,10 @@ typedef struct { /* parameters to initialize Q330 */
     void *state_callback;
 } tinit;
 
+/**
+ * Structure with Q330 miniseed data. A subset of data from the tminiseed_call
+ * libclient struct, which can be passed to Python.
+ */
 typedef struct {        /* format for miniseed and archival miniseed */
     char *station_name; /* network and station */
     char *location;
@@ -55,6 +62,10 @@ typedef struct {        /* format for miniseed and archival miniseed */
     pointer data_address; /* pointer to miniseed record, which is a byte array of size data_size */
 } tminiseed;
 
+/**
+ * Structure with Q330 message data. A subset of data from the tmsg_call
+ * libclient struct, which can be passed to Python.
+ */
 typedef struct {       /* parameters of a Q330 message */
     longword msgcount; /* number of messages */
     word code;
@@ -64,6 +75,10 @@ typedef struct {       /* parameters of a Q330 message */
     char *suffix; /* optional additional information */
 } tmsg;
 
+/**
+ * Structure with Q330 one second data. A subset of data from the tonesec_call
+ * libclient struct, which can be passed to Python.
+ */
 typedef struct {         /* for 1 second and low latency callback */
     longword total_size; /* number of bytes in buffer passed */
     char *station_name;  /* network and station */
@@ -86,6 +101,10 @@ typedef struct {         /* for 1 second and low latency callback */
     longint samples[MAX_RATE]; /* decompressed samples */
 } tonesec;
 
+/**
+ * Structure with Q330 state data. A subset of data from the tstate_call
+ * libclient struct, which can be passed to Python.
+ */
 typedef struct {                 /* format for state callback */
     enum tstate_type state_type; /* reason for this message */
     char *station_name;
