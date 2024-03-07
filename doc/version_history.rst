@@ -13,6 +13,8 @@ First release of the earthquake sensor code package.
 
 * A simplified C API for interacting with the Q330 C library.
 * Python code that uses the simplified C API.
+* Handling of the telemetry.
+* Use LFS for binary files.
 
 Requires:
 
