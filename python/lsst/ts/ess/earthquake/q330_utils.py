@@ -20,6 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = [
+    "ChannelDataHolder",
     "TInit",
     "TMiniseed",
     "TMsg",
@@ -34,6 +35,38 @@ __all__ = [
 
 import ctypes
 import enum
+from dataclasses import dataclass
+
+
+@dataclass
+class ChannelDataHolder:
+    """Holder for channel data.
+
+    Parameters
+    ----------
+    topic_name : `str`
+        The name of the topic to write the data to.
+    timestamp : `float`
+        The timestamp of the data.
+    accelerationEastWest : `list`[`float`]
+        The e-component of the data.
+    accelerationNorthSouth : `list`[`float`]
+        The n-component of the data.
+    accelerationZenith : `list`[`float`]
+        The z-component of the data.
+
+    Notes
+    -----
+    The data for the individual components is received in separate messages.
+    This class is used to collect all component data until all three have
+    arrived so the telemetry for the whole channel can be processed in one go.
+    """
+
+    topic_name: str
+    timestamp: float
+    accelerationEastWest: list[float]
+    accelerationNorthSouth: list[float]
+    accelerationZenith: list[float]
 
 
 class TInit(ctypes.Structure):
@@ -212,17 +245,21 @@ class TOnesec(ctypes.Structure):
         Aan array of decompressed samples with the number of samples equal to
         `rate` if rate is positive or one sample for sub-Hz sampling rates; an
         array of up to 1000 32 bit signed integers.
+
+    Notes
+    -----
+    See `ChannelName` for more information for the channel names.
     """
 
     _fields_ = [
         ("total_size", ctypes.c_uint32),
-        ("station_name", ctypes.c_char_p * 9),
-        ("location", ctypes.c_char_p * 2),
+        ("station_name", ctypes.c_char_p),
+        ("location", ctypes.c_char_p),
         ("chan_number", ctypes.c_byte),
-        ("channel", ctypes.c_char_p * 3),
+        ("channel", ctypes.c_char_p),
         ("padding", ctypes.c_uint16),
-        ("rate", ctypes.c_uint32),
-        ("cl_session", ctypes.c_int32),
+        ("rate", ctypes.c_int32),
+        ("cl_session", ctypes.c_uint32),
         ("reserved", ctypes.c_uint32),
         ("cl_offset", ctypes.c_double),
         ("timestamp", ctypes.c_double),
@@ -268,7 +305,7 @@ class TState(ctypes.Structure):
     ]
 
 
-class OSF(enum.Enum):
+class OSF(enum.IntEnum):
     """One second filtering bit masks."""
 
     OSF_ALL = 1  # bit set to send all one second data
@@ -277,7 +314,7 @@ class OSF(enum.Enum):
     OSF_EP = 8  # bit set to send 1hz Environmental Processor data
 
 
-class TLibState(enum.Enum):
+class TLibState(enum.IntEnum):
     """Enum representing the tlibstate C enum.
 
     Notes
@@ -302,7 +339,7 @@ class TLibState(enum.Enum):
     LIBSTATE_WAIT = 13  # Waiting for a new registration
 
 
-class TMiniseedAction(enum.Enum):
+class TMiniseedAction(enum.IntEnum):
     """Enum representing the tminiseed_action C enum.
 
     Notes
@@ -322,7 +359,7 @@ class TMiniseedAction(enum.Enum):
     #                 only
 
 
-class TPacketClass(enum.Enum):
+class TPacketClass(enum.IntEnum):
     """Enum representing the tpacket_class C enum.
 
     Notes
@@ -339,7 +376,7 @@ class TPacketClass(enum.Enum):
     PKC_OPAQUE = 5
 
 
-class TStateType(enum.Enum):
+class TStateType(enum.IntEnum):
     """Enum representing the tstyate_type C enum.
 
     Notes

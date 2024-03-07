@@ -24,30 +24,49 @@ import types
 import unittest
 from unittest import mock
 
+from lsst.ts import salobj
 from lsst.ts.ess import earthquake
 
 
 class EarthquakeDataClientTestCase(unittest.IsolatedAsyncioTestCase):
     @mock.patch("lsst.ts.ess.earthquake.q330_connector.ctypes.CDLL", mock.MagicMock())
     async def test_earthquake_data_client(self) -> None:
-        config = types.SimpleNamespace(
-            host="127.0.0.1",
-            port=6330,
-            serial_id="0123456789ABCDEF",
-            max_read_timeouts=5,
-        )
-        topics = types.SimpleNamespace()
-        log = logging.getLogger(type(self).__name__)
-        earthquake_data_client = earthquake.EarthquakeDataClient(
-            config=config, topics=topics, log=log
-        )
-        assert earthquake_data_client is not None
-        assert earthquake_data_client.q330_connector is not None
+        if hasattr(salobj, "set_random_topic_subname"):
+            salobj.set_random_topic_subname()
+        else:
+            salobj.set_random_lsst_dds_partition_prefix()
+        async with salobj.make_mock_write_topics(
+            name="ESS",
+            attr_names=[
+                "tel_earthquakeBroadBandHighGain",
+                "tel_earthquakeBroadBandLowGain",
+                "tel_earthquakeHighBroadBandHighGain",
+                "tel_earthquakeHighBroadBandLowGain",
+                "tel_earthquakeLongPeriodHighGain",
+                "tel_earthquakeLongPeriodLowGain",
+                "tel_earthquakeUltraLongPeriodHighGain",
+                "tel_earthquakeVeryLongPeriodHighGain",
+            ],
+        ) as topics:
+            config = types.SimpleNamespace(
+                host="127.0.0.1",
+                port=6330,
+                serial_id="0123456789ABCDEF",
+                max_read_timeouts=5,
+                sensor_name="UnitTest",
+                location="UnitTest",
+            )
+            log = logging.getLogger(type(self).__name__)
+            earthquake_data_client = earthquake.EarthquakeDataClient(
+                config=config, topics=topics, log=log
+            )
+            assert earthquake_data_client is not None
+            assert earthquake_data_client.q330_connector is not None
 
-        earthquake_data_client.q330_connector.q330_state = earthquake.TState()
-        earthquake_data_client.q330_connector.q330_state.info = (
-            earthquake.TLibState.LIBSTATE_RUNWAIT.value
-        )
+            earthquake_data_client.q330_connector.q330_state = earthquake.TState()
+            earthquake_data_client.q330_connector.q330_state.info = (
+                earthquake.TLibState.LIBSTATE_RUNWAIT.value
+            )
 
-        await earthquake_data_client.connect()
-        await earthquake_data_client.disconnect()
+            await earthquake_data_client.connect()
+            await earthquake_data_client.disconnect()
