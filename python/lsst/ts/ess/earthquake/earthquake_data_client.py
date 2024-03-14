@@ -98,11 +98,18 @@ properties:
     description: Maximum number of read timeouts before an exception is raised.
     type: integer
     default: 5
+  sensor_name:
+    description: The name of the sensor.
+    type: string
+  location:
+    description: Sensor location (used for all telemetry topics).
+    type: string
 required:
   - host
   - port
   - serial_id
   - max_read_timeouts
+  - location
 additionalProperties: false
 """
         )
@@ -146,8 +153,8 @@ additionalProperties: false
 
         Notes
         -----
-        This method needs to raise an `asyncio.TimeoutError` when timing out,
-        otherwise the `read_loop` method may hang forever.
+        This method is left empty because all data reading is implemented in a
+        separate thread in the Lib330 C library.
         """
-        # empty
+        # Empty on purpose.
         pass
