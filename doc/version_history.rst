@@ -15,6 +15,7 @@ First release of the earthquake sensor code package.
 * Python code that uses the simplified C API.
 * Handling of the telemetry.
 * Use LFS for binary files.
+* Update the version of ts-conda-build to 0.4 in the conda recipe.
 
 Requires:
 
