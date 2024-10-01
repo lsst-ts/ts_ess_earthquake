@@ -112,7 +112,7 @@ class Q330Connector:
         pf = platform.system()
         extension = EXTENSIONS[pf]
         libname = (
-            pathlib.Path(__file__).parent / "data" / "lib330" / f"libq330.{extension}"
+            pathlib.Path(__file__).parent / "data" / "libq330" / f"libq330.{extension}"
         )
         self.libq330 = ctypes.CDLL(str(libname))
 
