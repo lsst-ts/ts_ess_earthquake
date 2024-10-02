@@ -19,6 +19,7 @@ pytest_session.txt
 
 # CMake build directory
 **/build
+**/cmake-build-debug
 
 # macOS dynamically linked libraries
 **/*.dylib
