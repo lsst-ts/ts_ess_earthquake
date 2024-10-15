@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.20)
 
 project(q330)
 
+IF(APPLE)
+    SET(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "Build architectures for Mac OS X" FORCE)
+ENDIF(APPLE)
+
 set(LIB330_SRC_DIR ${PROJECT_SOURCE_DIR}/include/lib330)
 set(LIBMSEED_SRC_DIR ${PROJECT_SOURCE_DIR}/include/libmseed)
 set(Q330_SRC_DIR ${PROJECT_SOURCE_DIR}/include/lsst/ts/ess/earthquake/python)

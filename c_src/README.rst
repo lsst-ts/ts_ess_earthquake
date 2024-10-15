@@ -32,8 +32,14 @@ This will install the dynamically linked library into the <ts_ess_earthquake clo
 On Linux this will create the file libq330.so.
 On macOS this will create the file libq330.dylib.
 
-Note that the target platform for TSSW projects is Linux.
-Therefore the libq330.dylib is included in the project .gitignore file and should not be pushed to GitHub.
+Notes
+=====
+
+* The code accesses memory blocks in a way that is not compatible with segemented memory on ARM64.
+  Therefore the macOS build is configured to always be for x86_64.
+
+* The target platform for TSSW projects is Linux.
+  Therefore the libq330.dylib is included in the project .gitignore file and should not be pushed to GitHub.
 
 #############
 CLion Support
