@@ -407,15 +407,19 @@ class Q330Connector:
     async def disconnect(self) -> None:
         """Disconnect from the earthquake sensor.
 
-        Disconnecting is performed by instructing the lib330 library to destroy
-        the conneciton context.
+        Disconnecting is performed by first sending an IDLE state to the
+        earthquake sensor and then a TERM state. The final step is instructing
+        the lib330 library to destroy the conneciton context.
         """
         await self.stop_telemetry_thread()
 
         self.libq330.q330_change_state(TLibState.LIBSTATE_IDLE.value)
-        await asyncio.sleep(1.0)
+        assert self.q330_state is not None
+        while self.q330_state.info != TLibState.LIBSTATE_IDLE:
+            await asyncio.sleep(1.0)
         self.libq330.q330_change_state(TLibState.LIBSTATE_TERM.value)
-        await asyncio.sleep(1.0)
+        while self.q330_state.info != TLibState.LIBSTATE_TERM:
+            await asyncio.sleep(1.0)
         self.libq330.q330_destroy_context()
 
     async def stop_telemetry_thread(self) -> None:

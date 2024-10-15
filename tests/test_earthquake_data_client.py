@@ -57,16 +57,20 @@ class EarthquakeDataClientTestCase(unittest.IsolatedAsyncioTestCase):
                 location="UnitTest",
             )
             log = logging.getLogger(type(self).__name__)
-            earthquake_data_client = earthquake.EarthquakeDataClient(
+            self.earthquake_data_client = earthquake.EarthquakeDataClient(
                 config=config, topics=topics, log=log
             )
-            assert earthquake_data_client is not None
-            assert earthquake_data_client.q330_connector is not None
+            assert self.earthquake_data_client is not None
+            assert self.earthquake_data_client.q330_connector is not None
 
-            earthquake_data_client.q330_connector.q330_state = earthquake.TState()
-            earthquake_data_client.q330_connector.q330_state.info = (
-                earthquake.TLibState.LIBSTATE_RUNWAIT.value
+            self.earthquake_data_client.q330_connector.libq330 = mock.MagicMock()
+            self.earthquake_data_client.q330_connector.libq330.q330_change_state = (
+                self.mock_set_libq330_state
             )
 
-            await earthquake_data_client.connect()
-            await earthquake_data_client.disconnect()
+            await self.earthquake_data_client.connect()
+            await self.earthquake_data_client.disconnect()
+
+    def mock_set_libq330_state(self, new_value: int) -> None:
+        self.earthquake_data_client.q330_connector.q330_state = earthquake.TState()
+        self.earthquake_data_client.q330_connector.q330_state.info = new_value
