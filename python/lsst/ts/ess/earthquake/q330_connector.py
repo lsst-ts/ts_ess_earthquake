@@ -385,10 +385,11 @@ class Q330Connector:
 
         Check the queue for pending telemetry and write it if there is any.
         """
-        if not self.telemetry_event:
-            raise RuntimeError("No telemetry event.")
         while True:
             if self.telemetry_event.is_set():
+                self.log.debug(
+                    "Breaking out of telemetry loop because telemetry_event is set."
+                )
                 break
             self.log.debug(
                 f"Length of telemetry queue = {self.telemetry_queue.qsize()}"

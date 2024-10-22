@@ -10,6 +10,7 @@ v0.1.2
 ======
 
 * Fixed a bug with disconnecting from the earthquake device.
+* Fixed a bug in the telemetry loop.
 
 Requires:
 
