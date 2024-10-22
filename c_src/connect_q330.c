@@ -107,9 +107,13 @@ int main() {
     do_sleep(long_sleep_time);
 
     q330_change_state(LIBSTATE_IDLE);
-    do_sleep(short_sleep_time);
+    while (state.info != LIBSTATE_IDLE) {
+        do_sleep(short_sleep_time);
+    }
     q330_change_state(LIBSTATE_TERM);
-    do_sleep(short_sleep_time);
+    while (state.info != LIBSTATE_TERM) {
+        do_sleep(short_sleep_time);
+    }
     q330_destroy_context();
 
     for (int i = 0; i < 64; i++) {

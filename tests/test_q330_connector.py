@@ -57,13 +57,22 @@ class Q330ConnectorTestCase(unittest.IsolatedAsyncioTestCase):
                 location="UnitTest",
             )
             log = logging.getLogger(type(self).__name__)
-            q330_connector = earthquake.Q330Connector(
+            self.q330_connector = earthquake.Q330Connector(
                 config=config, topics=topics, log=log
             )
-            assert q330_connector is not None
+            assert self.q330_connector is not None
 
-            q330_connector.q330_state = earthquake.TState()
-            q330_connector.q330_state.info = earthquake.TLibState.LIBSTATE_RUNWAIT.value
+            self.q330_connector.q330_state = earthquake.TState()
+            self.q330_connector.q330_state.info = (
+                earthquake.TLibState.LIBSTATE_RUNWAIT.value
+            )
 
-            await q330_connector.connect()
-            await q330_connector.disconnect()
+            self.q330_connector.libq330 = mock.MagicMock()
+            self.q330_connector.libq330.q330_change_state = self.mock_set_libq330_state
+
+            await self.q330_connector.connect()
+            await self.q330_connector.disconnect()
+
+    def mock_set_libq330_state(self, new_value: int) -> None:
+        self.q330_connector.q330_state = earthquake.TState()
+        self.q330_connector.q330_state.info = new_value

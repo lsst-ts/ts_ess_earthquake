@@ -36,6 +36,7 @@ int q330id_baseport;
 bool debug = false;
 
 string95 result;
+string63 state_name;
 tminiseed aminiseed;
 tmsg message;
 tminiseed miniseed;
@@ -176,7 +177,6 @@ void my_secdata_callback(pointer p) {
 void my_state_callback(pointer p) {
     tstate_call *data = (tstate_call *)p;
     enum tlibstate state_info = data->info;
-    string63 state_name;
     lib_get_statestr(state_info, &state_name);
     if (debug) {
         printf("[Q330] my_state_callback: '%u' == '%s'\n", data->info, state_name);
