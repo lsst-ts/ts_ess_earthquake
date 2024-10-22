@@ -413,13 +413,13 @@ class Q330Connector:
         """
         await self.stop_telemetry_thread()
 
-        self.libq330.q330_change_state(TLibState.LIBSTATE_IDLE.value)
-        assert self.q330_state is not None
-        while self.q330_state.info != TLibState.LIBSTATE_IDLE:
-            await asyncio.sleep(1.0)
-        self.libq330.q330_change_state(TLibState.LIBSTATE_TERM.value)
-        while self.q330_state.info != TLibState.LIBSTATE_TERM:
-            await asyncio.sleep(1.0)
+        if self.q330_state is not None:
+            self.libq330.q330_change_state(TLibState.LIBSTATE_IDLE.value)
+            while self.q330_state.info != TLibState.LIBSTATE_IDLE:
+                await asyncio.sleep(1.0)
+            self.libq330.q330_change_state(TLibState.LIBSTATE_TERM.value)
+            while self.q330_state.info != TLibState.LIBSTATE_TERM:
+                await asyncio.sleep(1.0)
         self.libq330.q330_destroy_context()
 
     async def stop_telemetry_thread(self) -> None:
