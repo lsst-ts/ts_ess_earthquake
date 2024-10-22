@@ -6,6 +6,18 @@
 Version History
 ###############
 
+v0.1.1
+======
+
+* Include sources for lib330 and libmseed instead of pulling them from gitlab.
+* Make the C code always build for x86_64 on macOS.
+* Make C test application and Python code correctly disconnect from the earthquake device.
+
+Requires:
+
+* ts_ess_common
+* ts_salobj (for type checking)
+
 v0.1.0
 ======
 
