@@ -27,7 +27,6 @@ import logging
 import pathlib
 import platform
 import queue
-import threading
 import types
 from collections.abc import Callable
 
@@ -111,11 +110,14 @@ class Q330Connector:
         # Load the shared library using ctypes.
         pf = platform.system()
         extension = EXTENSIONS[pf]
+        self.log.debug(f"Loading libq330 for {pf=} and {extension=}.")
         libname = (
             pathlib.Path(__file__).parent / "data" / "libq330" / f"libq330.{extension}"
         )
         self.libq330 = ctypes.CDLL(str(libname))
+        self.log.debug("Done loading libq330.")
 
+        self.log.debug("Setting up libq330.")
         self.q330_state: TState | None = None
 
         self.aminiseed_callback = self._get_aminiseed_callback()
@@ -123,6 +125,11 @@ class Q330Connector:
         self.miniseed_callback = self._get_miniseed_callback()
         self.secdata_callback = self._get_secdata_callback()
         self.state_callback = self._get_state_callback()
+
+        self.libq330.get_message.restype = TMsg
+        self.libq330.get_onesec.restype = TOnesec
+        self.libq330.get_state.restype = TState
+        self.log.debug("Done setting up libq330.")
 
         # Initialize the telemetry topics.
         for topic_name in ["BH", "BL", "HH", "HL", "LH", "LL", "UH", "VH"]:
@@ -140,10 +147,8 @@ class Q330Connector:
                 accelerationZenith=[],
             )
 
-        # Telemetry processing Queue, Thread and Event.
+        # Telemetry processing Queue.
         self.telemetry_queue: queue.Queue = queue.Queue()
-        self.telemetry_thread: threading.Thread | None = None
-        self.telemetry_event = threading.Event()
 
     def _get_topic_for_name(self, topic_name: str) -> salobj.topics.WriteTopic:
         """Convenience method to look up the SAL topic for a topic name.
@@ -347,10 +352,7 @@ class Q330Connector:
         context is created. Connecting is performed by sending a register
         request to the earthquake sensor.
         """
-        self.libq330.get_message.restype = TMsg
-        self.libq330.get_onesec.restype = TOnesec
-        self.libq330.get_state.restype = TState
-
+        self.log.debug("connect.")
         serial_id = int(self.config.serial_id, 16)
         self.log.debug(f"{serial_id=}")
         init = TInit(
@@ -368,41 +370,46 @@ class Q330Connector:
         self.libq330.q330_create_context()
         self.libq330.q330_register()
 
-        await self.stop_telemetry_thread()
-        self.log.debug("Starting telemetry thread.")
-        self.telemetry_thread = threading.Thread(target=self._telemetry_worker)
-        self.telemetry_thread.start()
-        self.log.debug("Done starting telemetry thread.")
-
-    def _telemetry_worker(self) -> None:
-        telemetry_loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(telemetry_loop)
-        self.log.debug("Starting telemetry loop.")
-        asyncio.run(self._process_telemetry())
-
-    async def _process_telemetry(self) -> None:
+    async def process_telemetry(self) -> None:
         """Process pending telemetry.
 
         Check the queue for pending telemetry and write it if there is any.
         """
-        if not self.telemetry_event:
-            raise RuntimeError("No telemetry event.")
-        while True:
-            if self.telemetry_event.is_set():
-                break
-            self.log.debug(
-                f"Length of telemetry queue = {self.telemetry_queue.qsize()}"
-            )
-            if self.telemetry_queue.empty():
-                await asyncio.sleep(TELEMETRY_WAIT)
-                continue
-            cdh = self.telemetry_queue.get(False)
-            topic = self._get_topic_for_name(cdh.topic_name)
-            self.log.debug(
-                f"Writing [{cdh.topic_name=}, {cdh.timestamp=}, "
-                f"{cdh.e=}, {cdh.n=}, {cdh.z=}] telemetry."
-            )
-            await topic.set_write(timestamp=cdh.timestamp, e=cdh.e, n=cdh.n, z=cdh.z)
+        self.log.debug(f"Length of telemetry queue = {self.telemetry_queue.qsize()}")
+        if self.telemetry_queue.empty():
+            await asyncio.sleep(TELEMETRY_WAIT)
+            return
+
+        cdh = self.telemetry_queue.get(False)
+
+        # Convert the telemetry to float if necessary, otherwise keep the
+        # array.
+        if len(cdh.accelerationEastWest) == 1:
+            accelerationEastWest = cdh.accelerationEastWest[0]
+        else:
+            accelerationEastWest = cdh.accelerationEastWest
+        if len(cdh.accelerationNorthSouth) == 1:
+            accelerationNorthSouth = cdh.accelerationNorthSouth[0]
+        else:
+            accelerationNorthSouth = cdh.accelerationNorthSouth
+        if len(cdh.accelerationZenith) == 1:
+            accelerationZenith = cdh.accelerationZenith[0]
+        else:
+            accelerationZenith = cdh.accelerationZenith
+
+        self.log.debug(
+            f"Writing [{cdh.topic_name=}, {cdh.timestamp=}, "
+            f"{accelerationEastWest=}, {accelerationNorthSouth=}, "
+            f"{accelerationZenith=}] telemetry."
+        )
+
+        topic = self._get_topic_for_name(cdh.topic_name)
+        await topic.set_write(
+            timestamp=cdh.timestamp,
+            accelerationEastWest=accelerationEastWest,
+            accelerationNorthSouth=accelerationNorthSouth,
+            accelerationZenith=accelerationZenith,
+        )
 
     async def disconnect(self) -> None:
         """Disconnect from the earthquake sensor.
@@ -411,21 +418,15 @@ class Q330Connector:
         earthquake sensor and then a TERM state. The final step is instructing
         the lib330 library to destroy the conneciton context.
         """
-        await self.stop_telemetry_thread()
+        self.log.debug("disconnect.")
 
-        self.libq330.q330_change_state(TLibState.LIBSTATE_IDLE.value)
-        assert self.q330_state is not None
-        while self.q330_state.info != TLibState.LIBSTATE_IDLE:
-            await asyncio.sleep(1.0)
-        self.libq330.q330_change_state(TLibState.LIBSTATE_TERM.value)
-        while self.q330_state.info != TLibState.LIBSTATE_TERM:
-            await asyncio.sleep(1.0)
-        self.libq330.q330_destroy_context()
-
-    async def stop_telemetry_thread(self) -> None:
-        self.telemetry_event.clear()
-        if self.telemetry_thread:
-            self.log.debug("Stopping telemetry thread.")
-            self.telemetry_event.set()
-            self.telemetry_thread.join(timeout=THREAD_STOP_WAIT)
-            self.log.debug("Done stopping telemetry thread.")
+        if self.q330_state is not None:
+            self.log.debug("Trying to disconnect from the Q330 device in a clean way.")
+            self.libq330.q330_change_state(TLibState.LIBSTATE_IDLE.value)
+            while self.q330_state.info != TLibState.LIBSTATE_IDLE:
+                await asyncio.sleep(1.0)
+            self.libq330.q330_change_state(TLibState.LIBSTATE_TERM.value)
+            while self.q330_state.info != TLibState.LIBSTATE_TERM:
+                await asyncio.sleep(1.0)
+            self.libq330.q330_destroy_context()
+            self.q330_state = None
