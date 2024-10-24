@@ -140,6 +140,7 @@ additionalProperties: false
             (or any subclass) if any other serious problem occurs.
         """
         await self.q330_connector.connect()
+        self._connected = True
 
     async def disconnect(self) -> None:
         """Disconnect from the earthquake sensor.
@@ -147,6 +148,7 @@ additionalProperties: false
         This must always be safe to call, whether connected or not.
         """
         await self.q330_connector.disconnect()
+        self._connected = False
 
     async def read_data(self) -> None:
         """Read data.
@@ -156,5 +158,4 @@ additionalProperties: false
         This method is left empty because all data reading is implemented in a
         separate thread in the Lib330 C library.
         """
-        # Empty on purpose.
-        pass
+        await self.q330_connector.process_telemetry()
