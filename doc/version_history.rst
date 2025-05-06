@@ -6,6 +6,17 @@
 Version History
 ###############
 
+v0.1.3
+======
+
+* Started looping over all entries to empty the telemetry queue.
+  This avoids filling up all available memory.
+
+Requires:
+
+* ts_ess_common
+* ts_salobj (for type checking)
+
 v0.1.2
 ======
 
@@ -21,9 +32,9 @@ Requires:
 v0.1.1
 ======
 
-* Include sources for lib330 and libmseed instead of pulling them from gitlab.
-* Make the C code always build for x86_64 on macOS.
-* Make C test application and Python code correctly disconnect from the earthquake device.
+* Included sources for lib330 and libmseed instead of pulling them from gitlab.
+* Made the C code always build for x86_64 on macOS.
+* Made C test application and Python code correctly disconnect from the earthquake device.
 
 Requires:
 
