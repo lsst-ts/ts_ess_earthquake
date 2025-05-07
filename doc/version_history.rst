@@ -11,6 +11,7 @@ v0.1.3
 
 * Started looping over all entries to empty the telemetry queue.
   This avoids filling up all available memory.
+* Fix version module generation.
 
 Requires:
 
