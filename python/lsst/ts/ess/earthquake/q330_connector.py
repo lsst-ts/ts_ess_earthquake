@@ -376,40 +376,42 @@ class Q330Connector:
         Check the queue for pending telemetry and write it if there is any.
         """
         self.log.debug(f"Length of telemetry queue = {self.telemetry_queue.qsize()}")
-        if self.telemetry_queue.empty():
-            await asyncio.sleep(TELEMETRY_WAIT)
-            return
+        while not self.telemetry_queue.empty():
+            try:
+                cdh = self.telemetry_queue.get(False)
 
-        cdh = self.telemetry_queue.get(False)
+                # Convert the telemetry to float if necessary, otherwise keep
+                # the array.
+                if len(cdh.accelerationEastWest) == 1:
+                    acceleration_east_west = cdh.accelerationEastWest[0]
+                else:
+                    acceleration_east_west = cdh.accelerationEastWest
+                if len(cdh.accelerationNorthSouth) == 1:
+                    acceleration_north_south = cdh.accelerationNorthSouth[0]
+                else:
+                    acceleration_north_south = cdh.accelerationNorthSouth
+                if len(cdh.accelerationZenith) == 1:
+                    acceleration_zenith = cdh.accelerationZenith[0]
+                else:
+                    acceleration_zenith = cdh.accelerationZenith
 
-        # Convert the telemetry to float if necessary, otherwise keep the
-        # array.
-        if len(cdh.accelerationEastWest) == 1:
-            accelerationEastWest = cdh.accelerationEastWest[0]
-        else:
-            accelerationEastWest = cdh.accelerationEastWest
-        if len(cdh.accelerationNorthSouth) == 1:
-            accelerationNorthSouth = cdh.accelerationNorthSouth[0]
-        else:
-            accelerationNorthSouth = cdh.accelerationNorthSouth
-        if len(cdh.accelerationZenith) == 1:
-            accelerationZenith = cdh.accelerationZenith[0]
-        else:
-            accelerationZenith = cdh.accelerationZenith
+                self.log.debug(
+                    f"Writing [{cdh.topic_name=}, {cdh.timestamp=}, "
+                    f"{acceleration_east_west=}, {acceleration_north_south=}, "
+                    f"{acceleration_zenith=}] telemetry."
+                )
 
-        self.log.debug(
-            f"Writing [{cdh.topic_name=}, {cdh.timestamp=}, "
-            f"{accelerationEastWest=}, {accelerationNorthSouth=}, "
-            f"{accelerationZenith=}] telemetry."
-        )
+                topic = self._get_topic_for_name(cdh.topic_name)
+                await topic.set_write(
+                    timestamp=cdh.timestamp,
+                    accelerationEastWest=acceleration_east_west,
+                    accelerationNorthSouth=acceleration_north_south,
+                    accelerationZenith=acceleration_zenith,
+                )
+            except queue.Empty:
+                self.log.debug("No telemetry available. Waiting.")
 
-        topic = self._get_topic_for_name(cdh.topic_name)
-        await topic.set_write(
-            timestamp=cdh.timestamp,
-            accelerationEastWest=accelerationEastWest,
-            accelerationNorthSouth=accelerationNorthSouth,
-            accelerationZenith=accelerationZenith,
-        )
+        await asyncio.sleep(TELEMETRY_WAIT)
 
     async def disconnect(self) -> None:
         """Disconnect from the earthquake sensor.
