@@ -64,14 +64,12 @@ class EarthquakeDataClient(common.data_client.BaseReadLoopDataClient):
         topics: salobj.Controller | types.SimpleNamespace,
         log: logging.Logger,
         simulation_mode: int = 0,
-        auto_reconnect: bool = False,
     ) -> None:
         super().__init__(
             config=config,
             topics=topics,
             log=log,
             simulation_mode=simulation_mode,
-            auto_reconnect=auto_reconnect,
         )
         self.q330_connector = Q330Connector(config=config, topics=topics, log=log)
 
@@ -98,6 +96,10 @@ properties:
     description: Maximum number of read timeouts before an exception is raised.
     type: integer
     default: 5
+  connect_timeout:
+    description: Timeout for connecting to the TCP/IP interface (sec).
+    type: number
+    default: 60.0
   sensor_name:
     description: The name of the sensor.
     type: string
@@ -109,6 +111,7 @@ required:
   - port
   - serial_id
   - max_read_timeouts
+  - connect_timeout
   - location
 additionalProperties: false
 """
