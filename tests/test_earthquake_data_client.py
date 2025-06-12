@@ -53,6 +53,7 @@ class EarthquakeDataClientTestCase(unittest.IsolatedAsyncioTestCase):
                 port=6330,
                 serial_id="0123456789ABCDEF",
                 max_read_timeouts=5,
+                connect_timeout=1,
                 sensor_name="UnitTest",
                 location="UnitTest",
             )
