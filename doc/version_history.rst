@@ -8,6 +8,15 @@ Version History
 
 .. towncrier release notes start
 
+v0.3.0 (2025-08-19)
+===================
+
+Bug Fixes
+---------
+
+- Added conversion from raw samples to values in m/s2. (`OSW-882 <https://rubinobs.atlassian.net//browse/OSW-882>`_)
+
+
 v0.2.0 (2025-06-12)
 ===================
 
