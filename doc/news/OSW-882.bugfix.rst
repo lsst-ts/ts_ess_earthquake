@@ -1,0 +1,1 @@
+Added conversion from raw samples to values in m/s2.
