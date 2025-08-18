@@ -30,6 +30,7 @@ import queue
 import types
 from collections.abc import Callable
 
+from astropy import constants as const
 from lsst.ts import salobj, utils
 
 from .q330_utils import (
@@ -65,6 +66,10 @@ TOPIC_NAME_DICT = {
     "UH": "earthquakeUltraLongPeriodHighGain",
     "VH": "earthquakeVeryLongPeriodHighGain",
 }
+
+# Conversion factor from raw sample to sample in units of g, the
+# gravitational constant. The value was provided by Franco Colleoni.
+RAW_FACTOR = 2.384e-7
 
 
 class Q330Connector:
@@ -251,7 +256,12 @@ class Q330Connector:
             sample_num = 0
             channel_name = one_sec.channel.decode("utf-8")
             for sample in one_sec.samples:
-                samples.append(sample)
+                # Convert from raw samples to values in m/s2. To do so, the
+                # conversion factor needs to be applied to get values in units
+                # of g, the gravitational constant, and then multiply by g
+                # itself to get values in m/s2.
+                converted_sample = (const.G * RAW_FACTOR * sample).value
+                samples.append(converted_sample)
                 sample_num += 1
                 if sample_num >= num_samples:
                     break
