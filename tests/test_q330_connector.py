@@ -34,7 +34,7 @@ class Q330ConnectorTestCase(unittest.IsolatedAsyncioTestCase):
         if hasattr(salobj, "set_random_topic_subname"):
             salobj.set_random_topic_subname()
         else:
-            salobj.set_random_lsst_dds_partition_prefix()
+            salobj.set_test_topic_subname()
         async with salobj.make_mock_write_topics(
             name="ESS",
             attr_names=[
@@ -57,15 +57,11 @@ class Q330ConnectorTestCase(unittest.IsolatedAsyncioTestCase):
                 location="UnitTest",
             )
             log = logging.getLogger(type(self).__name__)
-            self.q330_connector = earthquake.Q330Connector(
-                config=config, topics=topics, log=log
-            )
+            self.q330_connector = earthquake.Q330Connector(config=config, topics=topics, log=log)
             assert self.q330_connector is not None
 
             self.q330_connector.q330_state = earthquake.TState()
-            self.q330_connector.q330_state.info = (
-                earthquake.TLibState.LIBSTATE_RUNWAIT.value
-            )
+            self.q330_connector.q330_state.info = earthquake.TLibState.LIBSTATE_RUNWAIT.value
 
             self.q330_connector.libq330 = mock.MagicMock()
             self.q330_connector.libq330.q330_change_state = self.mock_set_libq330_state

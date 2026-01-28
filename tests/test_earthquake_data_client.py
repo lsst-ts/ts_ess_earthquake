@@ -34,7 +34,7 @@ class EarthquakeDataClientTestCase(unittest.IsolatedAsyncioTestCase):
         if hasattr(salobj, "set_random_topic_subname"):
             salobj.set_random_topic_subname()
         else:
-            salobj.set_random_lsst_dds_partition_prefix()
+            salobj.set_test_topic_subname()
         async with salobj.make_mock_write_topics(
             name="ESS",
             attr_names=[
@@ -65,9 +65,7 @@ class EarthquakeDataClientTestCase(unittest.IsolatedAsyncioTestCase):
             assert self.earthquake_data_client.q330_connector is not None
 
             self.earthquake_data_client.q330_connector.libq330 = mock.MagicMock()
-            self.earthquake_data_client.q330_connector.libq330.q330_change_state = (
-                self.mock_set_libq330_state
-            )
+            self.earthquake_data_client.q330_connector.libq330.q330_change_state = self.mock_set_libq330_state
 
             await self.earthquake_data_client.connect()
             await self.earthquake_data_client.disconnect()
