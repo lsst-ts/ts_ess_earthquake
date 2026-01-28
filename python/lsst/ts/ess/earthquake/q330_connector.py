@@ -31,6 +31,7 @@ import types
 from collections.abc import Callable
 
 from astropy import constants as const
+
 from lsst.ts import salobj, utils
 
 from .q330_utils import (
@@ -116,9 +117,7 @@ class Q330Connector:
         pf = platform.system()
         extension = EXTENSIONS[pf]
         self.log.debug(f"Loading libq330 for {pf=} and {extension=}.")
-        libname = (
-            pathlib.Path(__file__).parent / "data" / "libq330" / f"libq330.{extension}"
-        )
+        libname = pathlib.Path(__file__).parent / "data" / "libq330" / f"libq330.{extension}"
         self.libq330 = ctypes.CDLL(str(libname))
         self.log.debug("Done loading libq330.")
 
@@ -280,9 +279,7 @@ class Q330Connector:
 
         return secdata_callback
 
-    def _process_samples(
-        self, timestamp: float, channel_name: str, samples: list[float]
-    ) -> None:
+    def _process_samples(self, timestamp: float, channel_name: str, samples: list[float]) -> None:
         """Process the onesec samples.
 
         Parameters
