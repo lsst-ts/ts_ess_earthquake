@@ -257,9 +257,9 @@ class Q330Connector:
             for sample in one_sec.samples:
                 # Convert from raw samples to values in m/s2. To do so, the
                 # conversion factor needs to be applied to get values in units
-                # of g, the gravitational constant, and then multiply by g
-                # itself to get values in m/s2.
-                converted_sample = (const.G * RAW_FACTOR * sample).value
+                # of g, the gravitational constant, and then multiply by g0
+                # to get values in m/s2.
+                converted_sample = (const.g0 * RAW_FACTOR * sample).value
                 samples.append(converted_sample)
                 sample_num += 1
                 if sample_num >= num_samples:
