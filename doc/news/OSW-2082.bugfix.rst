@@ -1,0 +1,1 @@
+Fixed earthquake sensor telemetry values conversion.
