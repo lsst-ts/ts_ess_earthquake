@@ -8,6 +8,15 @@ Version History
 
 .. towncrier release notes start
 
+v0.3.2 (2026-03-30)
+===================
+
+Bug Fixes
+---------
+
+- Fixed earthquake sensor telemetry values conversion. (`OSW-2082 <https://rubinobs.atlassian.net//browse/OSW-2082>`_)
+
+
 v0.3.1 (2026-01-28)
 ===================
 
